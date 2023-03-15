@@ -6,7 +6,7 @@
 /*   By: acmaghou <acmaghou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/01 16:30:58 by acmaghou          #+#    #+#             */
-/*   Updated: 2023/03/07 18:53:12 by acmaghou         ###   ########.fr       */
+/*   Updated: 2023/03/15 14:47:12 by acmaghou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,9 +108,9 @@ void inputFile(std::vector<InputValues> &inputData, std::string fileName)
 
 void	convert(const std::vector<BitcoinExchange> bitcoinData, std::vector<InputValues> &inputData)
 {
-	for (int i = 0; i < bitcoinData.size(); i++)
+	for (size_t i = 0; i < bitcoinData.size(); i++)
 	{
-		for (int j = 0; j < inputData.size(); j++)
+		for (size_t j = 0; j < inputData.size(); j++)
 		{
 			if (inputData[j].date == bitcoinData[i].date)
 			{
@@ -123,7 +123,7 @@ void	convert(const std::vector<BitcoinExchange> bitcoinData, std::vector<InputVa
 
 void printConversion(const std::vector<InputValues> inputData)
 {
-	for (int i = 0; i < inputData.size(); i++)
+	for (size_t i = 0; i < inputData.size(); i++)
 	{
 		if (inputData[i].tooLarge)
 			std::cout << "Error: too large a number." << std::endl;
