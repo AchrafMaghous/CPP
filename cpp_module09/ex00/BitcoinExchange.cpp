@@ -5,140 +5,86 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: acmaghou <acmaghou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/01 16:30:58 by acmaghou          #+#    #+#             */
-/*   Updated: 2023/03/15 14:47:12 by acmaghou         ###   ########.fr       */
+/*   Created: 2023/03/15 11:46:21 by acmaghou          #+#    #+#             */
+/*   Updated: 2023/03/18 12:29:26 by acmaghou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BitcoinExchange.hpp"
 
-void	bitcoinExchange(std::string csvFileName, std::string txtFileName)
-{
-	std::vector<BitcoinExchange>	bitcoinData;
-	std::vector<InputValues>		inputData;
-
-	btcDb(bitcoinData, csvFileName);
-	inputFile(inputData, txtFileName);
-
-	convert(bitcoinData, inputData);
-
-	printConversion(inputData);
+BitcoinExchange::BitcoinExchange() {
+	
 }
 
-void	btcDb(std::vector<BitcoinExchange> &bitcoinData, std::string fileName)
-{
-	std::ifstream	file;
-	std::string		line;
-
-	file.open(fileName.c_str());
-
-	getline(file, line);
-
-	while (getline(file, line))
-	{
-		std::istringstream	stringStream;
-		std::string			date;
-		float				value;
-
-		stringStream.str(line);
-
-		getline(stringStream, date, ',');
-
-		stringStream >> value;
-
-		BitcoinExchange bitcoin(date, value);
-
-		bitcoinData.push_back(bitcoin);
-  }
+BitcoinExchange::BitcoinExchange(const BitcoinExchange& obj) {
+	*this = obj;
 }
 
-void inputFile(std::vector<InputValues> &inputData, std::string fileName)
+BitcoinExchange::BitcoinExchange(std::string csv, std::string txt) {
+	parseBtcData(csv);
+	Input(txt);
+}
+
+BitcoinExchange&	BitcoinExchange::operator= (const BitcoinExchange& obj) {
+	exchange_rates = obj.exchange_rates;
+	return *this;
+}
+
+BitcoinExchange::~BitcoinExchange() {
+
+}
+
+float BitcoinExchange::getExchangeRate(const std::string &date_str)
 {
-	std::ifstream	file;
-	std::string	line;
+	std::string year_str = date_str.substr(0, 4);
+	std::string month_str = date_str.substr(5, 2);
+	std::string day_str = date_str.substr(8, 2);
+	std::string key = year_str + month_str + day_str;
 
-	file.open(fileName.c_str());
-
-	getline(file, line);
-
-	if (!(line == "date | value"))
-	{
-		std::cout << "Error: bad input =>" << line << std::endl;
-		return ;
+	std::map<std::string, float>::iterator it;
+	it = exchange_rates.lower_bound(key);
+	if (it != exchange_rates.end())
+		return it->second;
+	else {
+		--it;
+		return	it->second;
 	}
+}
 
-	while (getline(file, line))
+void	BitcoinExchange::parseBtcData(const std::string &btc) {
+	std::ifstream data_file(btc);
+	if (!data_file)
+		throw std::runtime_error("Could not open data file.");
+
+	std::string line;
+	
+	while (std::getline(data_file, line))
 	{
-		std::string	delimiter = " | ";
-		std::string	date;
-		std::string	stringValue;
+		std::stringstream ss(line);
+		std::string year, month, day , exchange_rate_str;
+		std::getline(ss, year, '-');
+		std::getline(ss, month, '-');
+		std::getline(ss, day, ',');
+		std::getline(ss, exchange_rate_str);
+		std::string key = year + month + day;
 		
-		size_t pos = line.find(delimiter);
 
-		if (pos == 10)
+		float exchange_rate;
+		try
 		{
-			date = line.substr(0, pos);
-			stringValue = line.substr(pos + delimiter.length());
+			exchange_rate = std::atof(exchange_rate_str.c_str());
 		}
-		else
+		catch (...)
 		{
-			date = line;
-			stringValue = "";
+			std::cerr << "Invalid argument" << std::endl;
+			continue;
 		}
-		
-		double value = std::atof(stringValue.c_str());
-		bool tooLarge = false;
-		bool notPositive = false;
-		bool badInput = false;
-
-		if (value > INT_MAX)
-			tooLarge = true;
-		else if (pos != 10 || !checkDate(date))
-			badInput = true;
-		else if (value < 0)
-			notPositive = true;
-		else
-			value = float(value);
-
-		InputValues input(date, value, tooLarge, notPositive, badInput);
-
-		inputData.push_back(input);
+		exchange_rates[key] = exchange_rate;
 	}
 }
 
-void	convert(const std::vector<BitcoinExchange> bitcoinData, std::vector<InputValues> &inputData)
-{
-	for (size_t i = 0; i < bitcoinData.size(); i++)
-	{
-		for (size_t j = 0; j < inputData.size(); j++)
-		{
-			if (inputData[j].date == bitcoinData[i].date)
-			{
-				if (inputData[j].tooLarge || !inputData[j].notPositive || !inputData[j].badInput)
-				inputData[j].exchangedValue = inputData[j].value * bitcoinData[i].value;
-			}
-		}
-	}
-}
-
-void printConversion(const std::vector<InputValues> inputData)
-{
-	for (size_t i = 0; i < inputData.size(); i++)
-	{
-		if (inputData[i].tooLarge)
-			std::cout << "Error: too large a number." << std::endl;
-		else if (inputData[i].notPositive)
-			std::cout << "Error: not a positive number." << std::endl;
-		else if (inputData[i].badInput)
-			std::cout << "Error: bad input => " << inputData[i].date << std::endl;
-		else
-			std::cout << inputData[i].date << " => " << inputData[i].value << " = "  << inputData[i].exchangedValue << std::endl;
-	}
-}
-
-bool checkDate( const std::string &date )
-{
-    if (date.length() != 10)
+bool	BitcoinExchange::checkDate(std::string date) {
+	if (date.length() != 10)
         return false;
 
     if (date[4] != '-' || date[7] != '-')
@@ -169,4 +115,56 @@ bool checkDate( const std::string &date )
     }
 
     return true;
+}
+
+void	BitcoinExchange::Input(std::string txt ) {
+	std::ifstream	file(txt);
+	std::string line;
+	while (std::getline(file, line))
+	{
+		std::string date_str, value_str;
+		std::size_t pos = line.find('|');
+		if (pos != std::string::npos || checkDate(date_str))
+		{
+			date_str = line.substr(0, pos);
+			value_str = line.substr(pos + 1);
+		}
+		else
+		{
+			std::cout << "Error: bad input => " << line << std::endl;
+			continue;
+		}
+		float value;
+		try
+		{
+			value = std::stof(value_str);
+   			if (value > 1000)
+			{
+				std::cout << "Error: too large a number." << std::endl;
+				continue;
+			}
+			if (value < 0)
+			{
+				std::cout << "Error: not a positive number." << std::endl;
+				continue;
+			}
+		}
+		catch (const std::exception &e)
+		{
+			std::cout << "Error: bad input => " << line << std::endl;
+			continue;
+		}
+
+		// Parse date and get exchange rate
+		float exchange_rate = getExchangeRate(date_str);
+		if (exchange_rate < 0)
+		{
+			std::cout << "Error: invalid date => " << date_str << std::endl;
+			continue;
+		}
+
+		// Compute and print result
+		float result = value * exchange_rate;
+		std::cout << date_str << " => " << value << " = " << result << std::endl;
+	}
 }

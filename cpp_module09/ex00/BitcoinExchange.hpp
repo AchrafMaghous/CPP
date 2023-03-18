@@ -5,47 +5,39 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: acmaghou <acmaghou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/01 16:28:46 by acmaghou          #+#    #+#             */
-/*   Updated: 2023/03/15 12:06:53 by acmaghou         ###   ########.fr       */
+/*   Created: 2023/03/15 11:46:13 by acmaghou          #+#    #+#             */
+/*   Updated: 2023/03/18 12:01:04 by acmaghou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef	BITCOINEXCHANGE_HPP
+#ifndef BITCOINEXCHANGE_HPP
 #define BITCOINEXCHANGE_HPP
 
-#include <iostream>
-#include <vector>
+#include <cstring>
+#include <cmath>
 #include <fstream>
 #include <sstream>
+#include <iostream>
+#include <map>
 
-// we cannot use a map here cause there could be an overlap of map keys in same date case
-// in the case of data.csv file, it is possible to use a map because of the uniqueness of dates.
+class	BitcoinExchange {
+	public:
+		BitcoinExchange();
+		BitcoinExchange(const BitcoinExchange &obj);
+		BitcoinExchange(std::string csv, std::string txt);
+		BitcoinExchange &operator=(const BitcoinExchange &obj);
+		~BitcoinExchange();
+		
+		float	getExchangeRate(const std::string &date);
 
-struct BitcoinExchange
-{
-	std::string	date;
-	float		value;
-
-	BitcoinExchange( std::string &date, float value ) : date(  date ), value( value ) {};
+	private:
+		std::map<std::string, float> exchange_rates;
+		bool	checkDate(std::string date);
+		void	parseBtcData(const std::string &csv);
+		void	Input(std::string );
+		
 };
 
-struct InputValues
-{
-	std::string	date;
-	float		value;
-	float		exchangedValue;
 
-	bool		tooLarge;
-	bool		notPositive;
-	bool		badInput;
 
-	InputValues(std::string &date, float value, bool tooLarge, bool notPositive, bool badInput) : date(date), value(value), exchangedValue( 0 ), tooLarge( tooLarge ), notPositive( notPositive ), badInput( badInput ) {};
-};
-
-void	btcDb(std::vector<BitcoinExchange> &bitcoinData, std::string fileName );
-void	inputFile(std::vector<InputValues> &inputData, std::string fileName );
-void	convert(const std::vector<BitcoinExchange> bitcoinData, std::vector<InputValues> &inputData );
-void	bitcoinExchange(std::string csvFileName, std::string txtFileName );
-void	printConversion(const std::vector<InputValues> inputData );
-bool	checkDate(const std::string &date );
 #endif
