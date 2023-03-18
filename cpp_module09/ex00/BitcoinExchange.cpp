@@ -6,7 +6,7 @@
 /*   By: acmaghou <acmaghou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/15 11:46:21 by acmaghou          #+#    #+#             */
-/*   Updated: 2023/03/18 12:29:26 by acmaghou         ###   ########.fr       */
+/*   Updated: 2023/03/18 14:12:11 by acmaghou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,13 @@ float BitcoinExchange::getExchangeRate(const std::string &date_str)
 	std::string key = year_str + month_str + day_str;
 
 	std::map<std::string, float>::iterator it;
-	it = exchange_rates.lower_bound(key);
+	it = exchange_rates.find(key);
 	if (it != exchange_rates.end())
 		return it->second;
 	else {
-		--it;
+		it = exchange_rates.lower_bound(key);
+		if (it != exchange_rates.begin())
+			--it;
 		return	it->second;
 	}
 }
@@ -83,50 +85,51 @@ void	BitcoinExchange::parseBtcData(const std::string &btc) {
 	}
 }
 
-bool	BitcoinExchange::checkDate(std::string date) {
-	if (date.length() != 10)
-        return false;
+bool	BitcoinExchange::checkDate(std::string &date) {
+	if (date[4] != '-' || date[7] != '-')
+		return false;
+	int year = atoi(date.substr(0, 4).c_str());
+	int month = atoi(date.substr(5, 2).c_str());
+	int day = atoi(date.substr(8, 2).c_str());
 
-    if (date[4] != '-' || date[7] != '-')
-        return false;
+	if (year < 2009 || year > 2022)
+		return false;
 
-    int year = atoi(date.substr(0, 4).c_str());
-    int month = atoi(date.substr(5, 2).c_str());
-    int day = atoi(date.substr(8, 2).c_str());
+	if (month < 1 || month > 12)
+		return false;
 
-    if (year < 2009 || year > 2023)
-        return false;
+	if (day < 1 || day > 31)
+		return false;
 
-    if (month < 1 || month > 12)
-        return false;
+	if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
+		return false;
 
-    if (day < 1 || day > 31)
-        return false;
+	if (month == 2)
+	{
+		if (day > 29)
+			return false;
+		if (day == 29 && (year % 4 != 0 || (year % 100 == 0 && year % 400 != 0)))
+			return false;
+	}
 
-    if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
-        return false;
-
-    if (month == 2)
-    {
-        if (day > 29)
-            return false;
-        if (day == 29 && (year % 4 != 0 || (year % 100 == 0 && year % 400 != 0)))
-            return false;
-    }
-
-    return true;
+	return true;
 }
 
-void	BitcoinExchange::Input(std::string txt ) {
+void	BitcoinExchange::Input(std::string &txt ) {
 	std::ifstream	file(txt);
 	std::string line;
+	std::getline(file, line);
 	while (std::getline(file, line))
 	{
 		std::string date_str, value_str;
 		std::size_t pos = line.find('|');
-		if (pos != std::string::npos || checkDate(date_str))
+		if (pos != std::string::npos)
 		{
 			date_str = line.substr(0, pos);
+			if (!checkDate(date_str)) {
+				std::cout << "Error: year out of bound => " << line << std::endl;
+				continue;
+			}
 			value_str = line.substr(pos + 1);
 		}
 		else
@@ -168,3 +171,4 @@ void	BitcoinExchange::Input(std::string txt ) {
 		std::cout << date_str << " => " << value << " = " << result << std::endl;
 	}
 }
+

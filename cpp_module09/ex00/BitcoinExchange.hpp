@@ -6,9 +6,10 @@
 /*   By: acmaghou <acmaghou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/15 11:46:13 by acmaghou          #+#    #+#             */
-/*   Updated: 2023/03/18 12:01:04 by acmaghou         ###   ########.fr       */
+/*   Updated: 2023/03/18 14:11:48 by acmaghou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #ifndef BITCOINEXCHANGE_HPP
 #define BITCOINEXCHANGE_HPP
@@ -32,9 +33,9 @@ class	BitcoinExchange {
 
 	private:
 		std::map<std::string, float> exchange_rates;
-		bool	checkDate(std::string date);
+		bool	checkDate(std::string &date);
 		void	parseBtcData(const std::string &csv);
-		void	Input(std::string );
+		void	Input(std::string& );
 		
 };
 
