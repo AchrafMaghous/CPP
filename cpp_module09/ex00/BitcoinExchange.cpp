@@ -6,7 +6,7 @@
 /*   By: acmaghou <acmaghou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/15 11:46:21 by acmaghou          #+#    #+#             */
-/*   Updated: 2023/03/18 14:12:11 by acmaghou         ###   ########.fr       */
+/*   Updated: 2023/03/18 19:00:56 by acmaghou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,9 +92,6 @@ bool	BitcoinExchange::checkDate(std::string &date) {
 	int month = atoi(date.substr(5, 2).c_str());
 	int day = atoi(date.substr(8, 2).c_str());
 
-	if (year < 2009 || year > 2022)
-		return false;
-
 	if (month < 1 || month > 12)
 		return false;
 
@@ -127,7 +124,7 @@ void	BitcoinExchange::Input(std::string &txt ) {
 		{
 			date_str = line.substr(0, pos);
 			if (!checkDate(date_str)) {
-				std::cout << "Error: year out of bound => " << line << std::endl;
+				std::cout << "Error: date out of bound => " << line << std::endl;
 				continue;
 			}
 			value_str = line.substr(pos + 1);
